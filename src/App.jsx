@@ -108,7 +108,7 @@ END:VCARD`;
             {user.role}
           </div>
           <button
-            onClick={handleAddContact}
+            onClick={() => handleAddContact}
             className="mt-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow hover:bg-indigo-600 hover:text-white transition"
           >
             + Thêm liên hệ
