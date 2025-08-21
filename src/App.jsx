@@ -75,7 +75,7 @@ END:VCARD`;
 
   return (
     <div className="min-h-screen w-full bg-white p-6 flex">
-      <div className="bg-white flex-1 rounded-4xl hadow-lg">
+      <div className="bg-white flex-1 rounded-4xl shadow-lg">
         {/* Header */}
         <div
           className="relative flex h-[240px] flex-col items-center justify-start bg-cover bg-top text-white rounded-t-4xl"
