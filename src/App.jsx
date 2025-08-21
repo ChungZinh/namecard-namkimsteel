@@ -43,7 +43,6 @@ export default function App() {
   const handleAddContact = async () => {
     if (!user) return;
 
-    // Tạo nội dung vCard
     const vcard = `BEGIN:VCARD
 VERSION:3.0
 FN:${user.name}
@@ -53,29 +52,25 @@ TEL;TYPE=CELL:${user.phone}
 EMAIL:${user.email}
 END:VCARD`;
 
-    // Chuyển nội dung thành Blob
     const file = new Blob([vcard], { type: "text/vcard" });
-    const fileName = `${user.slug}.vcf`;
+    const fileName = `${user.slug}-${Date.now()}.vcf`; // tránh trùng file
 
     try {
-      // Upload lên Supabase bucket 'vcards'
       const { data, error } = await supabase.storage
         .from("vcards")
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file);
 
       if (error) throw error;
 
-      // Lấy public URL
       const { data: urlData } = supabase.storage
         .from("vcards")
         .getPublicUrl(fileName);
 
       const publicURL = urlData.publicUrl;
 
-      // Trigger download trực tiếp
       const a = document.createElement("a");
       a.href = publicURL;
-      a.download = fileName; // tên file khi tải
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
