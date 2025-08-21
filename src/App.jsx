@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom"; // để lấy ?u=slug
-import { db } from "./firebase";
+import { useSearchParams } from "react-router-dom";
+import { supabase } from "./supabase"; // đã cấu hình Supabase client
+
+// Firestore
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "./firebase"; // Firestore config
 
 export default function App() {
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Lấy slug từ URL (?u=slug)
   const slug = searchParams.get("u");
 
   useEffect(() => {
@@ -18,12 +20,10 @@ export default function App() {
         return;
       }
       try {
-        // Query theo field slug
         const q = query(collection(db, "user"), where("slug", "==", slug));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-          // Lấy user đầu tiên
           const docSnap = querySnapshot.docs[0];
           setUser({ id: docSnap.id, ...docSnap.data() });
         } else {
@@ -38,6 +38,53 @@ export default function App() {
 
     fetchUser();
   }, [slug]);
+
+  // Tạo và tải vCard trực tiếp, upload lên Supabase public bucket
+  const handleAddContact = async () => {
+    if (!user) return;
+
+    // Tạo nội dung vCard
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${user.name}
+ORG:Công ty Nam Kim
+TITLE:${user.role}
+TEL;TYPE=CELL:${user.phone}
+EMAIL:${user.email}
+END:VCARD`;
+
+    // Chuyển nội dung thành Blob
+    const file = new Blob([vcard], { type: "text/vcard" });
+    const fileName = `${user.slug}.vcf`;
+
+    try {
+      // Upload lên Supabase bucket 'vcards'
+      const { data, error } = await supabase.storage
+        .from("vcards")
+        .upload(fileName, file, { upsert: true });
+
+      if (error) throw error;
+
+      // Lấy public URL
+      const { data: urlData } = supabase.storage
+        .from("vcards")
+        .getPublicUrl(fileName);
+
+      const publicURL = urlData.publicUrl;
+
+      // Trigger download trực tiếp
+      const a = document.createElement("a");
+      a.href = publicURL;
+      a.download = fileName; // tên file khi tải
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      console.log("Upload và download thành công:", publicURL);
+    } catch (err) {
+      console.error("Lỗi upload vCard:", err);
+    }
+  };
 
   if (loading) {
     return (
@@ -55,33 +102,12 @@ export default function App() {
     );
   }
 
-  // Hàm tạo vCard
-  const handleAddContact = () => {
-    const company = "Công ty cổ phần thép Nam Kim";
-    const vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:${user.name}
-ORG:${company}
-TITLE:${user.role}
-TEL;TYPE=CELL:${user.phone}
-EMAIL:${user.email}
-END:VCARD`;
-
-    const blob = new Blob([vcard], { type: "text/vcard" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${user.name}.vcf`;
-    document.body.appendChild(link); // thêm vào body
-    link.click(); // trigger download
-    document.body.removeChild(link); // xóa link sau khi download
-  };
-
   return (
-    <div className="min-h-screen w-full bg-white p-6 flex">
-      <div className="bg-white flex-1 rounded-4xl shadow-lg">
+    <div className="min-h-screen w-full bg-gray-100 p-6 flex justify-center">
+      <div className="bg-white rounded-3xl shadow-lg w-full max-w-md overflow-hidden">
         {/* Header */}
         <div
-          className="relative flex h-[240px] flex-col items-center justify-start bg-cover bg-top text-white rounded-t-4xl"
+          className="relative flex h-[240px] flex-col items-center justify-start bg-cover bg-top text-white"
           style={{
             backgroundImage:
               "url('https://ejgcugnvtmhdxpdonhwa.supabase.co/storage/v1/object/public/image/bg.jpg')",
@@ -104,10 +130,10 @@ END:VCARD`;
             alt="Avatar"
             className="mt-10 h-[120px] w-[120px] rounded-full border-4 border-white bg-white object-cover shadow-md"
           />
-          <div className="mt-3 text-lg font-bold  py-1 px-2 bg-white rounded-4xl text-black ">
+          <div className="mt-3 text-lg font-bold py-1 px-4 bg-white rounded-full text-black">
             {user.name}
           </div>
-          <div className="text-sm font-bold py-1 px-2 bg-white rounded-4xl mt-2 text-black">
+          <div className="text-sm font-bold py-1 px-4 bg-white rounded-full mt-2 text-black">
             {user.role}
           </div>
           <button
@@ -153,7 +179,11 @@ END:VCARD`;
             </div>
             {user.zalo && (
               <a
-                href={user.zalo}
+                href={
+                  user.zalo.startsWith("http")
+                    ? user.zalo
+                    : `https://${user.zalo}`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-auto"
