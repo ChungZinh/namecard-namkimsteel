@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* Thiết lập mặc định mobile-first */
+@layer base {
+  html {
+    font-size: 14px; /* nhỏ hơn mặc định, giống mobile */
+    max-width: 100%;
+    overflow-x: hidden;
+    background-color: #f9fafb; /* màu nền mặc định */
+  }
+
+  body {
+    @apply text-gray-800 bg-white;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Nếu muốn định nghĩa responsive trực tiếp ở đây */
+@layer base {
+  @media (min-width: 768px) {
+    html {
+      font-size: 16px; /* tablet lớn hơn chút */
+    }
+  }
+
+  @media (min-width: 1024px) {
+    html {
+      font-size: 18px; /* desktop font to hơn */
+    }
+  }
+}
