@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { supabase } from "./supabase"; // đã cấu hình Supabase client
-
-// Firestore
+import { supabase } from "./supabase";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "./firebase"; // Firestore config
+import { db } from "./firebase";
 
 export default function App() {
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(""); // state thông báo
 
   const slug = searchParams.get("u");
 
@@ -39,7 +38,6 @@ export default function App() {
     fetchUser();
   }, [slug]);
 
-  // Tạo và tải vCard trực tiếp, upload lên Supabase public bucket
   const handleAddContact = async () => {
     if (!user) return;
 
@@ -53,7 +51,7 @@ EMAIL:${user.email}
 END:VCARD`;
 
     const file = new Blob([vcard], { type: "text/vcard" });
-    const fileName = `${user.slug}-${Date.now()}.vcf`; // tránh trùng file
+    const fileName = `${user.slug}-${Date.now()}.vcf`;
 
     try {
       const { data, error } = await supabase.storage
@@ -75,9 +73,13 @@ END:VCARD`;
       a.click();
       document.body.removeChild(a);
 
-      console.log("Upload và download thành công:", publicURL);
+      // hiện push-up thông báo
+      setToast("Thêm liên hệ thành công!");
+      setTimeout(() => setToast(""), 3000); // 3s tự ẩn
     } catch (err) {
       console.error("Lỗi upload vCard:", err);
+      setToast("Lỗi khi thêm liên hệ!");
+      setTimeout(() => setToast(""), 3000);
     }
   };
 
@@ -98,8 +100,8 @@ END:VCARD`;
   }
 
   return (
-    <div className="min-h-screen w-full bg-gray-100 p-6 flex justify-center">
-      <div className="bg-white rounded-3xl shadow-lg w-full max-w-md overflow-hidden">
+    <div className="min-h-screen w-full bg-gray-100 p-6 flex flex-col items-center">
+      <div className="bg-white rounded-3xl shadow-lg w-full max-w-md overflow-hidden flex flex-col">
         {/* Header */}
         <div
           className="relative flex h-[240px] flex-col items-center justify-start bg-cover bg-top text-white"
@@ -131,19 +133,10 @@ END:VCARD`;
           <div className="text-sm font-bold py-1 px-4 bg-white rounded-full mt-2 text-black">
             {user.role}
           </div>
-          <button
-            onClick={handleAddContact}
-            className="mt-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow 
-             hover:bg-indigo-600 hover:text-white 
-             active:scale-95 active:bg-indigo-700
-             transition transform duration-150"
-          >
-            + Thêm liên hệ
-          </button>
         </div>
 
         {/* Info */}
-        <div className="p-4">
+        <div className="p-4 flex-1">
           <div className="mb-3 rounded-lg bg-gray-50 p-3 shadow-sm">
             <strong className="block text-gray-700 mb-1">Giới thiệu</strong>
             <p>{user.about || "Chưa có thông tin giới thiệu."}</p>
@@ -192,7 +185,25 @@ END:VCARD`;
             )}
           </div>
         </div>
+
+        {/* Nút thêm liên hệ xuống cuối */}
+        <div className="p-4 flex justify-center">
+          <button
+            onClick={handleAddContact}
+            className="rounded-full bg-indigo-600 px-6 py-3 text-white font-semibold shadow 
+                       hover:bg-indigo-700 active:scale-95 transition transform duration-150"
+          >
+            + Thêm liên hệ
+          </button>
+        </div>
       </div>
+
+      {/* Push-up thông báo */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md animate-slideUp">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
