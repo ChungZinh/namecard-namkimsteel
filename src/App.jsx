@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "./supabase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
+import NewUserForm from "./NewUserForm";
 
 export default function App() {
   const [searchParams] = useSearchParams();
@@ -44,7 +45,7 @@ export default function App() {
     const vcard = `BEGIN:VCARD
 VERSION:3.0
 FN:${user.name}
-ORG:Công ty Nam Kim
+ORG:Công ty cổ phần Thép Nam Kim
 TITLE:${user.role}
 TEL;TYPE=CELL:${user.phone}
 EMAIL:${user.email}
@@ -90,25 +91,22 @@ END:VCARD`;
     );
   }
 
-  if (!user) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-gray-100">
-        <p className="text-red-500">Không tìm thấy user!</p>
-      </div>
-    );
-  }
+if (!user) {
+  return <NewUserForm />;
+}
 
   return (
     <div className="min-h-screen w-full bg-gray-100 p-6 flex flex-col items-center">
-      <div className="bg-white rounded-3xl shadow-lg w-full max-w-md overflow-hidden flex flex-col">
+      <div className="bg-white rounded-3xl shadow-lg w-full max-w-md overflow-hidden flex flex-col flex-1">
         {/* Header */}
         <div
-          className="relative flex h-[240px] flex-col items-center justify-start bg-cover bg-top text-white"
+          className="relative flex flex-col items-center justify-center bg-cover bg-top text-white h-64 sm:h-72 md:h-80"
           style={{
             backgroundImage:
               "url('https://ejgcugnvtmhdxpdonhwa.supabase.co/storage/v1/object/public/image/bg.jpg')",
           }}
         >
+          {/* Logo */}
           <a
             href="https://tonnamkim.com/"
             target="_blank"
@@ -121,83 +119,103 @@ END:VCARD`;
               className="w-[100px]"
             />
           </a>
+
+          {/* Avatar */}
           <img
             src={user.avatar}
             alt="Avatar"
-            className="mt-10 h-[120px] w-[120px] rounded-full border-4 border-white bg-white object-cover shadow-md"
+            className="h-28 w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 rounded-full border-4 border-white bg-white object-cover shadow-md"
           />
-          <div className="mt-3 text-lg font-bold py-1 px-4 bg-white rounded-full text-black">
+
+          {/* Name */}
+          <div className="mt-3 text-lg sm:text-xl md:text-2xl font-bold py-1 px-4 bg-white rounded-full text-black">
             {user.name}
           </div>
-          <div className="text-sm font-bold py-1 px-4 bg-white rounded-full mt-2 text-black">
+
+          {/* Role */}
+          <div className="mt-2 text-sm sm:text-base md:text-lg font-bold py-1 px-4 bg-white rounded-full text-black">
             {user.role}
           </div>
         </div>
 
-        {/* Info */}
-        <div className="p-4 flex-1 flex flex-col gap-3">
-          {/* Giới thiệu */}
-          <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm">
-            <strong className="block text-gray-700 mb-1">Giới thiệu</strong>
-            <p>{user.about || "Chưa có thông tin giới thiệu."}</p>
-          </div>
+        <div className="p-4 flex-1 flex flex-col gap-3 justify-between w-full">
+          <div className="flex-1 flex  h-full flex-col justify-between">
+            {/* Info */}
+            <div className="p-4 flex-1 flex flex-col gap-3">
+              {/* Giới thiệu */}
+              <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm">
+                <strong className="block text-gray-700 mb-1">Giới thiệu</strong>
+                <p>{user.about || "Chưa có thông tin giới thiệu."}</p>
+              </div>
 
-          {/* Email */}
-          <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm">
-            <strong className="block text-gray-700 mb-1">Email</strong>
-            <a href={`mailto:${user.email}`} className="text-indigo-600 w-full block">
-              {user.email}
-            </a>
-          </div>
+              {/* Email */}
+              <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm">
+                <strong className="block text-gray-700 mb-1">Email</strong>
+                <a
+                  href={`mailto:${user.email}`}
+                  className="text-indigo-600 w-full block"
+                >
+                  {user.email}
+                </a>
+              </div>
 
-          {/* Phone */}
-          <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm">
-            <strong className="block text-gray-700 mb-1">Phone</strong>
-            <a href={`tel:${user.phone}`} className="text-indigo-600 w-full block">
-              {user.phone}
-            </a>
-          </div>
+              {/* Phone */}
+              <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm">
+                <strong className="block text-gray-700 mb-1">Phone</strong>
+                <a
+                  href={`tel:${user.phone}`}
+                  className="text-indigo-600 w-full block"
+                >
+                  {user.phone}
+                </a>
+              </div>
 
-          {/* Social */}
-          <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm flex items-center gap-3">
-            <div className="flex-1">
-              <strong className="block text-gray-700 mb-1">Social</strong>
-              <a
-                href={user.social}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-indigo-600"
-              >
-                {user.socialText || user.social}
-              </a>
+              {/* Social */}
+              <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm flex items-center gap-3">
+                <div className="flex-1">
+                  <strong className="block text-gray-700 mb-1">Social</strong>
+                  <a
+                    href={user.social}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600"
+                  >
+                    {user.socialText || user.social}
+                  </a>
+                </div>
+                {user.zalo && (
+                  <a
+                    href={
+                      user.zalo.startsWith("http")
+                        ? user.zalo
+                        : `https://${user.zalo}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img
+                      src="/images/zalo-icon.png"
+                      alt="Zalo"
+                      className="h-6 w-6"
+                    />
+                  </a>
+                )}
+              </div>
             </div>
-            {user.zalo && (
-              <a
-                href={
-                  user.zalo.startsWith("http")
-                    ? user.zalo
-                    : `https://${user.zalo}`
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <img src="/images/zalo-icon.png" alt="Zalo" className="h-6 w-6" />
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* Nút thêm liên hệ full-width xuống cuối */}
-        <div className="p-4 flex justify-center">
-          <button
-            onClick={handleAddContact}
-            className="w-full rounded-full bg-indigo-600 px-6 py-3 text-white font-semibold shadow 
+            <div className="flex-none p-4  justify-center">
+              <button
+                onClick={handleAddContact}
+                className="w-full rounded-full bg-indigo-600 px-6 py-3 text-white font-semibold shadow 
                        hover:bg-indigo-700 active:scale-95 transition transform duration-150"
-          >
-            + Thêm liên hệ
-          </button>
+              >
+                + Thêm liên hệ
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Nút thêm liên hệ full-width xuống cuối */}
 
       {/* Push-up thông báo */}
       {toast && (
