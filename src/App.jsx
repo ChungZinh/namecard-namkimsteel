@@ -1,32 +1,150 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom"; // để lấy ?u=slug
 import { db } from "./firebase";
-import { collection, getDocs } from "firebase/firestore";
-import UserCard from "./UserCard";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function App() {
-  const [users, setUsers] = useState([]);
+  const [searchParams] = useSearchParams();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Lấy slug từ URL (?u=slug)
+  const slug = searchParams.get("u");
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUser = async () => {
+      if (!slug) {
+        setLoading(false);
+        return;
+      }
       try {
-        const querySnapshot = await getDocs(collection(db, "user"));
-        const usersData = [];
-        querySnapshot.forEach((doc) => {
-          usersData.push({ id: doc.id, ...doc.data() });
-        });
-        setUsers(usersData);
+        const ref = doc(db, "user", slug); // bảng user, doc id = slug
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setUser(snap.data());
+        } else {
+          setUser(null);
+        }
       } catch (err) {
         console.error("Firebase error:", err);
+      } finally {
+        setLoading(false);
       }
     };
+    fetchUser();
+  }, [slug]);
 
-    fetchUsers();
-  }, []);
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-gray-100">
+        <p className="text-gray-600">Đang tải...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-gray-100">
+        <p className="text-red-500">Không tìm thấy user!</p>
+      </div>
+    );
+  }
+
+  // Hàm tạo vCard
+  const handleAddContact = () => {
+    const company = "Công ty cổ phần thép Nam Kim";
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${user.name}
+ORG:${company}
+TITLE:${user.role}
+TEL;TYPE=CELL:${user.phone}
+EMAIL:${user.email}
+END:VCARD`;
+    const blob = new Blob([vcard], { type: "text/vcard" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${user.name}.vcf`;
+    link.click();
+  };
 
   return (
-    <div className="min-h-screen w-full bg-[#0c5ba2] p-6 flex">
-      <div className="bg-white flex-1 rounded-4xl shadow-lg">
-        {/* rỗng vẫn fill full */}
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#f4f6f9]">
+      <div className="w-[360px] max-w-[95%] overflow-hidden rounded-2xl bg-white shadow-xl">
+        {/* Header */}
+        <div
+          className="relative flex h-[240px] flex-col items-center justify-start bg-cover bg-top text-white"
+          style={{ backgroundImage: "url('/images/bg.jpg')" }}
+        >
+          <a
+            href="https://tonnamkim.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute left-2 top-2"
+          >
+            <img src="/images/logo.png" alt="Logo" className="w-[100px]" />
+          </a>
+          <img
+            src={user.avatar}
+            alt="Avatar"
+            className="mt-10 h-[120px] w-[120px] rounded-full border-4 border-white bg-white object-cover shadow-md"
+          />
+          <div className="mt-3 text-lg font-bold">{user.name}</div>
+          <div className="text-sm opacity-80">{user.role}</div>
+          <button
+            onClick={handleAddContact}
+            className="mt-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow hover:bg-indigo-600 hover:text-white transition"
+          >
+            + Thêm liên hệ
+          </button>
+        </div>
+
+        {/* Info */}
+        <div className="p-4">
+          <div className="mb-3 rounded-lg bg-gray-50 p-3 shadow-sm">
+            <strong className="block text-gray-700 mb-1">Giới thiệu</strong>
+            <p>{user.about || "Chưa có thông tin giới thiệu."}</p>
+          </div>
+          <div className="mb-3 rounded-lg bg-gray-50 p-3 shadow-sm">
+            <strong className="block text-gray-700 mb-1">Email</strong>
+            <a href={`mailto:${user.email}`} className="text-indigo-600">
+              {user.email}
+            </a>
+          </div>
+          <div className="mb-3 rounded-lg bg-gray-50 p-3 shadow-sm">
+            <strong className="block text-gray-700 mb-1">Phone</strong>
+            <a href={`tel:${user.phone}`} className="text-indigo-600">
+              {user.phone}
+            </a>
+          </div>
+          <div className="mb-3 rounded-lg bg-gray-50 p-3 shadow-sm flex items-center gap-3">
+            <div>
+              <strong className="block text-gray-700 mb-1">Social</strong>
+              <a
+                href={user.social}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-600"
+              >
+                {user.socialText || user.social}
+              </a>
+            </div>
+            {user.zalo && (
+              <a
+                href={user.zalo}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto"
+              >
+                <img
+                  src="/images/zalo-icon.png"
+                  alt="Zalo"
+                  className="h-6 w-6"
+                />
+              </a>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
