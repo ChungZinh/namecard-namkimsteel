@@ -74,7 +74,7 @@ END:VCARD`;
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0c5ba2] p-6 flex">
+    <div className="min-h-screen w-full bg-white p-6 flex">
       <div className="bg-white flex-1 rounded-4xl hadow-lg">
         {/* Header */}
         <div
