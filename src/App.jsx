@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom"; // để lấy ?u=slug
 import { db } from "./firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function App() {
   const [searchParams] = useSearchParams();
@@ -18,10 +18,14 @@ export default function App() {
         return;
       }
       try {
-        const ref = doc(db, "user", slug); // bảng user, doc id = slug
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          setUser(snap.data());
+        // Query theo field slug
+        const q = query(collection(db, "user"), where("slug", "==", slug));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          // Lấy user đầu tiên
+          const docSnap = querySnapshot.docs[0];
+          setUser({ id: docSnap.id, ...docSnap.data() });
         } else {
           setUser(null);
         }
@@ -31,6 +35,7 @@ export default function App() {
         setLoading(false);
       }
     };
+
     fetchUser();
   }, [slug]);
 
@@ -69,12 +74,15 @@ END:VCARD`;
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-[#f4f6f9]">
-      <div className="w-[360px] max-w-[95%] overflow-hidden rounded-2xl bg-white shadow-xl">
+    <div className="min-h-screen w-full bg-[#0c5ba2] p-6 flex">
+      <div className="bg-white flex-1 rounded-4xl hadow-lg">
         {/* Header */}
         <div
-          className="relative flex h-[240px] flex-col items-center justify-start bg-cover bg-top text-white"
-          style={{ backgroundImage: "url('/images/bg.jpg')" }}
+          className="relative flex h-[240px] flex-col items-center justify-start bg-cover bg-top text-white rounded-t-4xl"
+          style={{
+            backgroundImage:
+              "url('https://ejgcugnvtmhdxpdonhwa.supabase.co/storage/v1/object/public/image/bg.jpg')",
+          }}
         >
           <a
             href="https://tonnamkim.com/"
@@ -82,15 +90,23 @@ END:VCARD`;
             rel="noopener noreferrer"
             className="absolute left-2 top-2"
           >
-            <img src="/images/logo.png" alt="Logo" className="w-[100px]" />
+            <img
+              src="https://ejgcugnvtmhdxpdonhwa.supabase.co/storage/v1/object/public/image/logo.png"
+              alt="Logo"
+              className="w-[100px]"
+            />
           </a>
           <img
             src={user.avatar}
             alt="Avatar"
             className="mt-10 h-[120px] w-[120px] rounded-full border-4 border-white bg-white object-cover shadow-md"
           />
-          <div className="mt-3 text-lg font-bold">{user.name}</div>
-          <div className="text-sm opacity-80">{user.role}</div>
+          <div className="mt-3 text-lg font-bold  py-1 px-2 bg-white rounded-4xl text-black ">
+            {user.name}
+          </div>
+          <div className="text-sm font-bold py-1 px-2 bg-white rounded-4xl mt-2 text-black">
+            {user.role}
+          </div>
           <button
             onClick={handleAddContact}
             className="mt-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow hover:bg-indigo-600 hover:text-white transition"

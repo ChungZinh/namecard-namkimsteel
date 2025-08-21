@@ -1,0 +1,8 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Hoàng Phi Hùng
+ORG:TechVN
+TITLE:Nhà phát triển phần mềm
+TEL;TYPE=CELL:0123456789
+EMAIL:hung@example.com
+END:VCARD
