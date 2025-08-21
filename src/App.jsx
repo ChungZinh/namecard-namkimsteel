@@ -8,7 +8,7 @@ export default function App() {
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState(""); // state thông báo
+  const [toast, setToast] = useState("");
 
   const slug = searchParams.get("u");
 
@@ -73,9 +73,8 @@ END:VCARD`;
       a.click();
       document.body.removeChild(a);
 
-      // hiện push-up thông báo
       setToast("Thêm liên hệ thành công!");
-      setTimeout(() => setToast(""), 3000); // 3s tự ẩn
+      setTimeout(() => setToast(""), 3000);
     } catch (err) {
       console.error("Lỗi upload vCard:", err);
       setToast("Lỗi khi thêm liên hệ!");
@@ -136,25 +135,32 @@ END:VCARD`;
         </div>
 
         {/* Info */}
-        <div className="p-4 flex-1">
-          <div className="mb-3 rounded-lg bg-gray-50 p-3 shadow-sm">
+        <div className="p-4 flex-1 flex flex-col gap-3">
+          {/* Giới thiệu */}
+          <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm">
             <strong className="block text-gray-700 mb-1">Giới thiệu</strong>
             <p>{user.about || "Chưa có thông tin giới thiệu."}</p>
           </div>
-          <div className="mb-3 rounded-lg bg-gray-50 p-3 shadow-sm">
+
+          {/* Email */}
+          <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm">
             <strong className="block text-gray-700 mb-1">Email</strong>
-            <a href={`mailto:${user.email}`} className="text-indigo-600">
+            <a href={`mailto:${user.email}`} className="text-indigo-600 w-full block">
               {user.email}
             </a>
           </div>
-          <div className="mb-3 rounded-lg bg-gray-50 p-3 shadow-sm">
+
+          {/* Phone */}
+          <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm">
             <strong className="block text-gray-700 mb-1">Phone</strong>
-            <a href={`tel:${user.phone}`} className="text-indigo-600">
+            <a href={`tel:${user.phone}`} className="text-indigo-600 w-full block">
               {user.phone}
             </a>
           </div>
-          <div className="mb-3 rounded-lg bg-gray-50 p-3 shadow-sm flex items-center gap-3">
-            <div>
+
+          {/* Social */}
+          <div className="w-full rounded-lg bg-gray-50 p-3 shadow-sm flex items-center gap-3">
+            <div className="flex-1">
               <strong className="block text-gray-700 mb-1">Social</strong>
               <a
                 href={user.social}
@@ -174,23 +180,18 @@ END:VCARD`;
                 }
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-auto"
               >
-                <img
-                  src="/images/zalo-icon.png"
-                  alt="Zalo"
-                  className="h-6 w-6"
-                />
+                <img src="/images/zalo-icon.png" alt="Zalo" className="h-6 w-6" />
               </a>
             )}
           </div>
         </div>
 
-        {/* Nút thêm liên hệ xuống cuối */}
+        {/* Nút thêm liên hệ full-width xuống cuối */}
         <div className="p-4 flex justify-center">
           <button
             onClick={handleAddContact}
-            className="rounded-full bg-indigo-600 px-6 py-3 text-white font-semibold shadow 
+            className="w-full rounded-full bg-indigo-600 px-6 py-3 text-white font-semibold shadow 
                        hover:bg-indigo-700 active:scale-95 transition transform duration-150"
           >
             + Thêm liên hệ
