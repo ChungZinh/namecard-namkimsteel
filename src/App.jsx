@@ -66,11 +66,14 @@ TITLE:${user.role}
 TEL;TYPE=CELL:${user.phone}
 EMAIL:${user.email}
 END:VCARD`;
+
     const blob = new Blob([vcard], { type: "text/vcard" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `${user.name}.vcf`;
-    link.click();
+    document.body.appendChild(link); // thêm vào body
+    link.click(); // trigger download
+    document.body.removeChild(link); // xóa link sau khi download
   };
 
   return (
