@@ -108,8 +108,11 @@ END:VCARD`;
             {user.role}
           </div>
           <button
-            onClick={() => handleAddContact}
-            className="mt-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow hover:bg-indigo-600 hover:text-white transition"
+            onClick={handleAddContact}
+            className="mt-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow 
+             hover:bg-indigo-600 hover:text-white 
+             active:scale-95 active:bg-indigo-700
+             transition transform duration-150"
           >
             + Thêm liên hệ
           </button>
